@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ranking - Meu Cinema</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Monoton&display=swap" rel="stylesheet" />
+
+  <style>
+    body {
+      margin: 0;
+      padding: 50px 20px;
+      background: radial-gradient(circle at center, #1a0000 0%, #000000 80%);
+      font-family: 'Audiowide', cursive, Arial, sans-serif;
+      color: #ffcc00;
+      text-align: center;
+      overflow-x: hidden;
+    }
+
+    body::before, body::after {
+      content: "";
+      position: fixed;
+      top: 0;
+      width: 80px;
+      height: 100vh;
+      background: repeating-linear-gradient(
+        to bottom,
+        #330000,
+        #330000 20px,
+        #660000 20px,
+        #660000 40px
+      );
+      z-index: 10;
+      box-shadow: inset 5px 0 15px #ff0000aa;
+    }
+    body::before {
+      left: 0;
+      border-top-right-radius: 50px;
+      border-bottom-right-radius: 50px;
+    }
+    body::after {
+      right: 0;
+      border-top-left-radius: 50px;
+      border-bottom-left-radius: 50px;
+    }
+
+    h1 {
+      font-family: 'Monoton', cursive;
+      font-size: 3.5rem;
+      margin-bottom: 30px;
+      text-shadow:
+        0 0 5px #ffcc00,
+        0 0 10px #ffcc00,
+        0 0 20px #ff9900,
+        0 0 30px #ff9900,
+        0 0 40px #ff6600,
+        0 0 55px #ff6600,
+        0 0 75px #ff6600;
+    }
+
+    #ranking-lista {
+      max-width: 700px;
+      margin: 0 auto;
+      text-align: left;
+    }
+
+    .item-ranking {
+      display: flex;
+      align-items: center;
+      background: #330000cc;
+      border: 2px solid #ffcc00;
+      border-radius: 15px;
+      padding: 15px 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 15px #ff6600aa;
+      font-family: 'Arial', sans-serif;
+      color: #ffcc00;
+      user-select: none;
+      gap: 2rem;
+    }
+
+    .posicao {
+      font-family: 'Monoton', cursive;
+      font-size: 2.5rem;
+      width: 80px;
+      text-align: center;
+      text-shadow: 0 0 10px #ffcc00;
+      flex-shrink: 0;
+    }
+
+    .info-ranking {
+      flex-grow: 1;
+      margin-left: 20px;
+    }
+
+    .titulo-ranking {
+      font-size: 1.8rem;
+      margin: 0 0 5px 0;
+    }
+
+    .genero-ranking {
+      font-style: italic;
+      color: #ffbb33cc;
+      margin-bottom: 10px;
+    }
+
+    .descricao-ranking {
+      font-size: 1rem;
+      margin-bottom: 10px;
+      color: #ffdd99cc;
+      white-space: pre-line;
+    }
+
+    .saldo-votos {
+      font-weight: 700;
+      font-size: 1.3rem;
+      width: 60px;
+      text-align: center;
+      flex-shrink: 0;
+      color: #ffaa00;
+      text-shadow: 0 0 6px #ffbb00;
+    }
+
+    .voltar {
+      display: inline-block;
+      margin-top: 40px;
+      color: #ffcc00;
+      text-decoration: none;
+      border: 3px solid #ffcc00;
+      padding: 12px 25px;
+      border-radius: 12px;
+      font-family: 'Audiowide', cursive;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      transition:
+        background-color 0.3s ease,
+        box-shadow 0.3s ease,
+        transform 0.3s ease;
+      box-shadow:
+        0 0 10px #ffcc00,
+        inset 0 0 5px #ff6600;
+      user-select: none;
+      cursor: pointer;
+    }
+
+    .voltar:hover {
+      background: #ffcc00;
+      color: #440000;
+      box-shadow:
+        0 0 20px #ffcc00,
+        inset 0 0 10px #ff6600;
+      transform: scale(1.1);
+    }
+  </style>
+</head>
+<body>
+  <h1>Ranking de Filmes e Séries</h1>
+
+  <div id="ranking-lista">Carregando ranking...</div>
+
+  <a href="index.html" class="voltar">Voltar</a>
+
+  <script>
+  const rankingDiv = document.getElementById("ranking-lista");
+
+  async function carregarRanking() {
+    const resp = await fetch('/ranking_data');
+    if (!resp.ok) throw new Error('Falha ao carregar /ranking_data');
+    return resp.json();
+  }
+
+  function render(lista) {
+    rankingDiv.innerHTML = "";
+    if (!lista.length) {
+      rankingDiv.textContent = 'Nenhum item no ranking ainda.';
+      return;
+    }
+
+    lista.forEach((item, i) => {
+      const div = document.createElement("div");
+      div.className = "item-ranking";
+      div.innerHTML = `
+        <div class="posicao">Top ${i + 1}</div>
+        <img src="${item.imagem}" alt="${item.titulo}" style="width: 80px; height: 120px; border-radius: 10px;">
+        <div class="info-ranking">
+          <h3 class="titulo-ranking">${item.titulo}</h3>
+          <div class="genero-ranking">${item.genero || ''}</div>
+          <div class="descricao-ranking">${item.descricao || ''}</div>
+        </div>
+        <div class="saldo-votos">${item.likes}</div>
+      `;
+      rankingDiv.appendChild(div);
+    });
+  }
+
+  async function init() {
+    try {
+      rankingDiv.textContent = 'Carregando ranking...';
+      const lista = await carregarRanking();
+      render(lista);
+    } catch (e) {
+      console.error(e);
+      rankingDiv.textContent = 'Erro ao carregar ranking.';
+    }
+  }
+
+  init();
+</script>
+
+</body>
+</html>

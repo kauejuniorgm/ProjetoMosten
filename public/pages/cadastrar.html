@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cadastrar Filme ou Série - Meu Cinema</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Monoton&display=swap" rel="stylesheet" />
+
+  <style>
+    body {
+      margin: 0;
+      padding: 50px 20px;
+      background: radial-gradient(circle at center, #1a0000 0%, #000000 80%);
+      font-family: 'Audiowide', cursive, Arial, sans-serif;
+      color: #ffcc00;
+      text-align: center;
+      overflow-x: hidden;
+    }
+
+    h1 {
+      font-family: 'Monoton', cursive;
+      font-size: 3.5rem;
+      margin-bottom: 0.5em;
+      text-shadow:
+        0 0 5px #ffcc00,
+        0 0 10px #ffcc00,
+        0 0 20px #ff9900,
+        0 0 30px #ff9900,
+        0 0 40px #ff6600,
+        0 0 55px #ff6600,
+        0 0 75px #ff6600;
+    }
+
+    form {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #330000cc;
+      padding: 25px 30px;
+      border-radius: 15px;
+      box-shadow: 0 0 20px #ff6600aa;
+      text-align: left;
+      font-family: 'Arial', sans-serif;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: 700;
+      color: #ffcc00;
+      text-shadow: 0 0 5px #ffaa00;
+    }
+
+    input[type="text"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 8px;
+      border: 2px solid #ffcc00;
+      background: #440000;
+      color: #ffcc00;
+      font-size: 1rem;
+      font-family: 'Arial', sans-serif;
+      box-sizing: border-box;
+      resize: vertical;
+    }
+
+    textarea {
+      height: 100px;
+    }
+
+    button {
+      margin-top: 25px;
+      padding: 12px 30px;
+      font-size: 1.2rem;
+      border-radius: 12px;
+      border: 3px solid #ffcc00;
+      background: #551111;
+      color: #ffcc00;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      font-family: 'Audiowide', cursive;
+      display: block;
+      width: 100%;
+    }
+
+    button:hover {
+      background-color: #ffcc00;
+      color: #551111;
+    }
+
+    .mensagem {
+      margin-top: 30px;
+      font-size: 1.2rem;
+      color: #aaff00cc;
+      text-shadow: 0 0 10px #aaff00aa;
+      font-weight: 700;
+    }
+
+    .voltar {
+      display: inline-block;
+      margin-top: 40px;
+      color: #ffcc00;
+      text-decoration: none;
+      border: 3px solid #ffcc00;
+      padding: 12px 25px;
+      border-radius: 12px;
+      font-family: 'Audiowide', cursive;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      transition:
+        background-color 0.3s ease,
+        box-shadow 0.3s ease,
+        transform 0.3s ease;
+      box-shadow:
+        0 0 10px #ffcc00,
+        inset 0 0 5px #ff6600;
+      user-select: none;
+    }
+
+    .voltar:hover {
+      background: #ffcc00;
+      color: #440000;
+      box-shadow:
+        0 0 20px #ffcc00,
+        inset 0 0 10px #ff6600;
+      transform: scale(1.1);
+    }
+  </style>
+</head>
+<body>
+  <h1>Cadastrar Filme ou Série</h1>
+
+  <form id="formCadastro">
+    <label for="titulo">Título:</label>
+    <input type="text" id="titulo" name="titulo" required />
+
+    <label for="genero">Gênero:</label>
+    <select id="genero" name="genero" required>
+      <option value="" disabled selected>Selecione o gênero</option>
+      <option value="Drama">Drama</option>
+      <option value="Comédia">Comédia</option>
+      <option value="Romance">Romance</option>
+      <option value="Terror">Terror</option>
+      <option value="Ação">Ação</option>
+      <option value="Suspense">Suspense</option>
+      <option value="Ficção Científica">Ficção Científica</option>
+      <option value="Documentário">Documentário</option>
+      <option value="Melodrama">Melodrama</option>
+      <option value="Outro">Outro</option>
+    </select>
+
+    <label for="genero">Tipo:</label>
+    <select id="tipo" name="tipo" required>
+      <option value="Filme" selected>Filme</option>
+      <option value="Série">Série</option>
+    </select>
+
+    <label for="descricao">Descrição:</label>
+    <textarea id="descricao" name="descricao" required></textarea>
+
+    <label for="imagem">URL da Imagem da Capa:</label>
+    <input type="text" id="imagem" name="imagem" placeholder="https://exemplo.com/capa.jpg" />
+
+    <button type="submit">Cadastrar</button>
+  </form>
+
+  <div class="mensagem" id="mensagem"></div>
+
+  <a href="index.html" class="voltar">Voltar</a>
+
+  <script>
+  const form = document.getElementById("formCadastro");
+  const mensagemDiv = document.getElementById("mensagem");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const titulo = form.titulo.value.trim();
+    const genero = form.genero.value;
+    const descricao = form.descricao.value.trim();
+    const imagem = form.imagem.value.trim();
+    const tipo = form.tipo.value; // "Filme" | "Série" (será normalizado no backend)
+
+    if (!titulo || !genero || !descricao) {
+      mensagemDiv.textContent = "Por favor, preencha todos os campos obrigatórios.";
+      return;
+    }
+
+    try {
+      const response = await fetch("/filmes_series", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ titulo, genero, descricao, imagem, tipo })
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        mensagemDiv.textContent = `Erro: ${data.error || "Falha ao cadastrar."}`;
+        return;
+      }
+
+      mensagemDiv.textContent = data.message || "Cadastro realizado com sucesso!";
+      form.reset();
+    } catch (error) {
+      mensagemDiv.textContent = "Erro ao conectar com o servidor.";
+      console.error(error);
+    }
+  });
+</script>
+
+
+</body>
+</html>

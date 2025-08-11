@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Votos - Meu Cinema</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Monoton&display=swap" rel="stylesheet" />
+
+  <style>
+    body {
+      margin: 0;
+      padding: 50px 20px;
+      background: radial-gradient(circle at center, #1a0000 0%, #000000 80%);
+      font-family: 'Audiowide', cursive, Arial, sans-serif;
+      color: #ffcc00;
+      text-align: center;
+      overflow-x: hidden;
+    }
+
+    body::before, body::after {
+      content: "";
+      position: fixed;
+      top: 0;
+      width: 80px;
+      height: 100vh;
+      background: repeating-linear-gradient(
+        to bottom,
+        #330000,
+        #330000 20px,
+        #660000 20px,
+        #660000 40px
+      );
+      z-index: 10;
+      box-shadow: inset 5px 0 15px #ff0000aa;
+    }
+    body::before {
+      left: 0;
+      border-top-right-radius: 50px;
+      border-bottom-right-radius: 50px;
+    }
+    body::after {
+      right: 0;
+      border-top-left-radius: 50px;
+      border-bottom-left-radius: 50px;
+    }
+
+    h1 {
+      font-family: 'Monoton', cursive;
+      font-size: 3.5rem;
+      margin-bottom: 0;
+      text-shadow:
+        0 0 5px #ffcc00,
+        0 0 10px #ffcc00,
+        0 0 20px #ff9900,
+        0 0 30px #ff9900,
+        0 0 40px #ff6600,
+        0 0 55px #ff6600,
+        0 0 75px #ff6600;
+    }
+
+    p {
+      font-family: 'Audiowide', cursive;
+      font-size: 1.3rem;
+      margin-top: 10px;
+      color: #ffdd55cc;
+      text-shadow: 0 0 8px #ffcc00bb;
+    }
+
+    #lista-votos {
+      margin-top: 40px;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+      text-align: left;
+    }
+
+    .item-voto {
+      background: #330000cc;
+      border: 2px solid #ffcc00;
+      border-radius: 15px;
+      padding: 15px 20px;
+      margin-bottom: 25px;
+      box-shadow: 0 0 15px #ff6600aa;
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .item-voto img {
+      width: 150px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #ffcc00aa;
+      flex-shrink: 0;
+    }
+
+    .item-voto div.info {
+      flex-grow: 1;
+    }
+
+    .item-voto h3 {
+      margin: 0 0 5px 0;
+      font-size: 1.8rem;
+    }
+
+    .item-voto .genero {
+      font-style: italic;
+      color: #ffbb33cc;
+      margin-bottom: 10px;
+    }
+
+    .item-voto .descricao {
+      font-size: 1rem;
+      margin-bottom: 15px;
+      color: #ffdd99cc;
+      white-space: pre-line;
+    }
+
+    .voto-controles {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .voto-controles button {
+      padding: 8px 15px;
+      font-size: 1.1rem;
+      border-radius: 8px;
+      box-shadow: none;
+      border: 2px solid #ffcc00;
+      background: #551111;
+      color: #ffcc00;
+      transition: background-color 0.3s ease;
+      text-transform: none;
+      font-family: 'Arial', sans-serif;
+      font-weight: 700;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .voto-controles button:hover {
+      background-color: #ffcc00;
+      color: #551111;
+    }
+
+    .contador {
+      min-width: 30px;
+      text-align: center;
+      font-weight: 700;
+      font-family: 'Arial Black', Arial, sans-serif;
+      color: #ffcc00;
+      text-shadow: 0 0 3px #ffaa00;
+      user-select: none;
+    }
+
+    .voltar {
+      margin-top: 40px;
+      display: inline-block;
+      background: #440000;
+      color: #ffcc00;
+      border: 3px solid #ffcc00;
+      padding: 12px 25px;
+      border-radius: 12px;
+      font-family: 'Audiowide', cursive;
+      font-weight: 700;
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      transition:
+        background-color 0.3s ease,
+        box-shadow 0.3s ease,
+        transform 0.3s ease;
+      box-shadow:
+        0 0 10px #ffcc00,
+        inset 0 0 5px #ff6600;
+      user-select: none;
+    }
+    .voltar:hover {
+      background: #ffcc00;
+      color: #440000;
+      box-shadow:
+        0 0 20px #ffcc00,
+        inset 0 0 10px #ff6600;
+      transform: scale(1.1);
+    }
+  </style>
+</head>
+<body>
+  <h1>MEU CINEMA - Votos</h1>
+  <p>Vote nos seus filmes e séries favoritos</p>
+
+  <div id="lista-votos"></div>
+
+  <a href="index.html" class="voltar">Voltar</a>
+
+  <script>
+  const listaVotosDiv = document.getElementById("lista-votos");
+  let listaFilmesSeries = [];
+
+  async function carregarFilmesSeries() {
+    const resp = await fetch('/filmes_series');
+    if (!resp.ok) throw new Error('Falha ao carregar /filmes_series');
+    const data = await resp.json();
+
+    // mapeia dados do backend -> estrutura da página
+    return data.map(row => ({
+      id: row.id,
+      titulo: row.titulo,
+      genero: row.genero,
+      descricao: row.descricao,
+      imagem: row.imagem,
+      votosPositivos: row.likes || 0,
+      votosNegativos: row.dislikes || 0,
+      votosUsuario: 0
+    }));
+
+  }
+
+  function criarItemVoto(item, index) {
+    const div = document.createElement("div");
+    div.className = "item-voto";
+    div.innerHTML = `
+      <img src="${item.imagem}" alt="${item.titulo}" />
+      <div class="info">
+        <h3>${item.titulo}</h3>
+        <div class="genero">${item.genero || ''}</div>
+        <div class="descricao">${item.descricao || ''}</div>
+        <div class="voto-controles">
+          <button class="btn-gostei" data-index="${index}" aria-pressed="false">👍 Gostei</button>
+          <div class="contador" id="positivo-${index}">${item.votosPositivos}</div>
+          <button class="btn-naogostei" data-index="${index}" aria-pressed="false">👎 Não Gostei</button>
+          <div class="contador" id="negativo-${index}">${item.votosNegativos}</div>
+        </div>
+      </div>
+    `;
+    return div;
+  }
+
+  function atualizarContadores(index, serverData) {
+    if (serverData) {
+      // se backend devolveu valores, confia neles
+      listaFilmesSeries[index].votosPositivos = serverData.likes;
+      listaFilmesSeries[index].votosNegativos = serverData.dislikes;
+    }
+    document.getElementById(`positivo-${index}`).textContent = listaFilmesSeries[index].votosPositivos;
+    document.getElementById(`negativo-${index}`).textContent = listaFilmesSeries[index].votosNegativos;
+  }
+
+  async function votar(id, voto, operacao) {
+    const resp = await fetch(`/filmes_series/${id}/voto`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ voto, operacao })
+    });
+    if (!resp.ok) throw new Error('Falha ao votar');
+    return resp.json(); // { id, likes, dislikes }
+  }
+
+  function montarListaVotos() {
+    listaVotosDiv.innerHTML = "";
+    if (!listaFilmesSeries.length) {
+      listaVotosDiv.innerHTML = `<p>Nenhum item encontrado.</p>`;
+      return;
+    }
+
+    listaFilmesSeries.forEach((item, i) => {
+      if (!("votosPositivos" in item)) item.votosPositivos = 0;
+      if (!("votosNegativos" in item)) item.votosNegativos = 0;
+      if (!("votosUsuario" in item)) item.votosUsuario = 0;
+
+      const itemDiv = criarItemVoto(item, i);
+      listaVotosDiv.appendChild(itemDiv);
+    });
+
+    document.querySelectorAll(".btn-gostei").forEach(button => {
+      button.onclick = async () => {
+        const i = button.getAttribute("data-index");
+        const item = listaFilmesSeries[i];
+
+        try {
+          if (item.votosUsuario === 1) {
+            // remover like
+            const server = await votar(item.id, 'like', 'dec');
+            item.votosUsuario = 0;
+            button.setAttribute("aria-pressed", "false");
+            atualizarContadores(i, server);
+          } else {
+            // se estava com dislike, remove antes
+            if (item.votosUsuario === -1) {
+              const server1 = await votar(item.id, 'dislike', 'dec');
+              const btnNao = document.querySelector(`.btn-naogostei[data-index="${i}"]`);
+              btnNao.setAttribute("aria-pressed", "false");
+              // sincroniza com servidor após a remoção
+              listaFilmesSeries[i].votosPositivos = server1.likes;
+              listaFilmesSeries[i].votosNegativos = server1.dislikes;
+            }
+            const server2 = await votar(item.id, 'like', 'inc');
+            item.votosUsuario = 1;
+            button.setAttribute("aria-pressed", "true");
+            atualizarContadores(i, server2);
+          }
+        } catch (e) {
+          console.error(e);
+          alert('Não foi possível registrar o voto.');
+        }
+      };
+    });
+
+    document.querySelectorAll(".btn-naogostei").forEach(button => {
+      button.onclick = async () => {
+        const i = button.getAttribute("data-index");
+        const item = listaFilmesSeries[i];
+
+        try {
+          if (item.votosUsuario === -1) {
+            // remover dislike
+            const server = await votar(item.id, 'dislike', 'dec');
+            item.votosUsuario = 0;
+            button.setAttribute("aria-pressed", "false");
+            atualizarContadores(i, server);
+          } else {
+            // se estava com like, remove antes
+            if (item.votosUsuario === 1) {
+              const server1 = await votar(item.id, 'like', 'dec');
+              const btnSim = document.querySelector(`.btn-gostei[data-index="${i}"]`);
+              btnSim.setAttribute("aria-pressed", "false");
+              listaFilmesSeries[i].votosPositivos = server1.likes;
+              listaFilmesSeries[i].votosNegativos = server1.dislikes;
+            }
+            const server2 = await votar(item.id, 'dislike', 'inc');
+            item.votosUsuario = -1;
+            button.setAttribute("aria-pressed", "true");
+            atualizarContadores(i, server2);
+          }
+        } catch (e) {
+          console.error(e);
+          alert('Não foi possível registrar o voto.');
+        }
+      };
+    });
+  }
+
+  async function init() {
+    try {
+      listaFilmesSeries = await carregarFilmesSeries();
+      montarListaVotos();
+    } catch (err) {
+      console.error(err);
+      listaVotosDiv.innerHTML = `<p>Erro ao carregar lista. Tente novamente mais tarde.</p>`;
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>
